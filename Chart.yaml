@@ -1,0 +1,15 @@
+name: generator-helm-chart2
+home: https://github.com/centos/generator-helm-chart2
+icon: https://nginx.org/nginx.png
+version: 0.6.0
+appVersion: latest
+description: 'A project for centos'
+keywords:
+  - generator-helm-chart2
+  - nginx
+  - server
+sources:
+  - https://github.com/centos/generator-helm-chart2
+maintainers:
+  - name: 'Hannaneh Soltani'
+    email: centos@devops-soltani.novalocal

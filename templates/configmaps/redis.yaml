@@ -1,0 +1,13 @@
+{{- if .Values.config.redis.internal }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-redis
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-redis
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  redis.conf: {{ .Values.config.redis.customConfig | quote }}
+{{- end }}

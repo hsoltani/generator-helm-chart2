@@ -1,0 +1,263 @@
+{{- if .Values.persistence.stash.enabled }}
+apiVersion: stash.appscode.com/v1alpha1
+kind: Repository
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-data
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-data
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  wipeOut: false
+  backend:
+    storageSecretName: {{ .Values.persistence.stash.secret | quote }}
+    {{ .Values.persistence.stash.type }}:
+      {{- if (or (eq "gcs" .Values.persistence.stash.type) (eq "s3" .Values.persistence.stash.type)) }}
+      bucket: {{ .Values.persistence.stash.bucket | quote }}
+      {{- end }}
+      {{- if (eq "s3" .Values.persistence.stash.type) }}
+      endpoint: {{ .Values.persistence.stash.endpoint | quote }}
+      {{- end }}
+      {{- if (eq "azure" .Values.persistence.stash.type) }}
+      container: {{ .Values.persistence.stash.container | quote }}
+      {{- end }}
+      prefix: '{{ .Values.persistence.stash.prefix }}/{{ .Release.Namespace }}/data'
+---
+apiVersion: stash.appscode.com/v1beta1
+kind: BackupConfiguration
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-data
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-data
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  repository:
+    name: {{ template "generator-helm-chart-2.fullname" . }}-data
+  paused: {{ .Values.persistence.stash.paused }}
+  schedule: {{ .Values.persistence.stash.schedule | quote }}
+  retentionPolicy:
+    name: retention-policy
+    keepLast: {{ .Values.persistence.stash.keepLast }}
+    prune: true
+  target:
+    ref:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: {{ template "generator-helm-chart-2.fullname" . }}-generator-helm-chart-2
+    volumeMounts:
+      - name: data
+        mountPath: /_data
+    paths:
+      - /_data
+{{- if (and .Values.config.elasticsearch.internal (not (and (eq .Values.config.elasticsearch.terminationPolicy "Pause") .Values.config.elasticsearch.pause))) }}---
+apiVersion: stash.appscode.com/v1alpha1
+kind: Repository
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-elasticsearch
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-elasticsearch
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  wipeOut: false
+  backend:
+    storageSecretName: {{ .Values.persistence.stash.secret | quote }}
+    {{ .Values.persistence.stash.type }}:
+      {{- if (or (eq "gcs" .Values.persistence.stash.type) (eq "s3" .Values.persistence.stash.type)) }}
+      bucket: {{ .Values.persistence.stash.bucket | quote }}
+      {{- end }}
+      {{- if (eq "s3" .Values.persistence.stash.type) }}
+      endpoint: {{ .Values.persistence.stash.endpoint | quote }}
+      {{- end }}
+      {{- if (eq "azure" .Values.persistence.stash.type) }}
+      container: {{ .Values.persistence.stash.container | quote }}
+      {{- end }}
+      prefix: '{{ .Values.persistence.stash.prefix }}/{{ .Release.Namespace }}/elasticsearch-{{ index .Values.config.elasticsearch.versionMap .Values.config.elasticsearch.version }}'
+---
+apiVersion: stash.appscode.com/v1beta1
+kind: BackupConfiguration
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-elasticsearch
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-elasticsearch
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  repository:
+    name: {{ template "generator-helm-chart-2.fullname" . }}-elasticsearch
+  paused: {{ .Values.persistence.stash.paused }}
+  schedule: {{ .Values.persistence.stash.schedule | quote }}
+  retentionPolicy:
+    name: retention-policy
+    keepLast: {{ .Values.persistence.stash.keepLast }}
+    prune: true
+  target:
+    ref:
+      apiVersion: apps/v1
+      kind: AppBinding
+      name: {{ template "generator-helm-chart-2.fullname" . }}-elasticsearch
+  task:
+    name: 'elasticsearch-backup-{{ index .Values.config.elasticsearch.versionMap .Values.config.elasticsearch.version }}'
+{{- end }}
+{{- if (and .Values.config.mongodb.internal (not (and (eq .Values.config.mongodb.terminationPolicy "Pause") .Values.config.mongodb.pause))) }}---
+apiVersion: stash.appscode.com/v1alpha1
+kind: Repository
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-mongodb
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-mongodb
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  wipeOut: false
+  backend:
+    storageSecretName: {{ .Values.persistence.stash.secret | quote }}
+    {{ .Values.persistence.stash.type }}:
+      {{- if (or (eq "gcs" .Values.persistence.stash.type) (eq "s3" .Values.persistence.stash.type)) }}
+      bucket: {{ .Values.persistence.stash.bucket | quote }}
+      {{- end }}
+      {{- if (eq "s3" .Values.persistence.stash.type) }}
+      endpoint: {{ .Values.persistence.stash.endpoint | quote }}
+      {{- end }}
+      {{- if (eq "azure" .Values.persistence.stash.type) }}
+      container: {{ .Values.persistence.stash.container | quote }}
+      {{- end }}
+      prefix: '{{ .Values.persistence.stash.prefix }}/{{ .Release.Namespace }}/mongodb-{{ index .Values.config.mongodb.versionMap .Values.config.mongodb.version }}'
+---
+apiVersion: stash.appscode.com/v1beta1
+kind: BackupConfiguration
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-mongodb
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-mongodb
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  repository:
+    name: {{ template "generator-helm-chart-2.fullname" . }}-mongodb
+  paused: {{ .Values.persistence.stash.paused }}
+  schedule: {{ .Values.persistence.stash.schedule | quote }}
+  retentionPolicy:
+    name: retention-policy
+    keepLast: {{ .Values.persistence.stash.keepLast }}
+    prune: true
+  target:
+    ref:
+      apiVersion: apps/v1
+      kind: AppBinding
+      name: {{ template "generator-helm-chart-2.fullname" . }}-mongodb
+  task:
+    name: 'mongodb-backup-{{ index .Values.config.mongodb.versionMap .Values.config.mongodb.version }}'
+{{- end }}
+{{- if (and .Values.config.mysql.internal (not (and (eq .Values.config.mysql.terminationPolicy "Pause") .Values.config.mysql.pause))) }}---
+apiVersion: stash.appscode.com/v1alpha1
+kind: Repository
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-mysql
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-mysql
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  wipeOut: false
+  backend:
+    storageSecretName: {{ .Values.persistence.stash.secret | quote }}
+    {{ .Values.persistence.stash.type }}:
+      {{- if (or (eq "gcs" .Values.persistence.stash.type) (eq "s3" .Values.persistence.stash.type)) }}
+      bucket: {{ .Values.persistence.stash.bucket | quote }}
+      {{- end }}
+      {{- if (eq "s3" .Values.persistence.stash.type) }}
+      endpoint: {{ .Values.persistence.stash.endpoint | quote }}
+      {{- end }}
+      {{- if (eq "azure" .Values.persistence.stash.type) }}
+      container: {{ .Values.persistence.stash.container | quote }}
+      {{- end }}
+      prefix: '{{ .Values.persistence.stash.prefix }}/{{ .Release.Namespace }}/mysql-{{ index .Values.config.mysql.versionMap .Values.config.mysql.version }}'
+---
+apiVersion: stash.appscode.com/v1beta1
+kind: BackupConfiguration
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-mysql
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-mysql
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  repository:
+    name: {{ template "generator-helm-chart-2.fullname" . }}-mysql
+  paused: {{ .Values.persistence.stash.paused }}
+  schedule: {{ .Values.persistence.stash.schedule | quote }}
+  retentionPolicy:
+    name: retention-policy
+    keepLast: {{ .Values.persistence.stash.keepLast }}
+    prune: true
+  target:
+    ref:
+      apiVersion: apps/v1
+      kind: AppBinding
+      name: {{ template "generator-helm-chart-2.fullname" . }}-mysql
+  task:
+    name: 'mysql-backup-{{ index .Values.config.mysql.versionMap .Values.config.mysql.version }}'
+{{- end }}
+{{- if (and .Values.config.postgres.internal (not (and (eq .Values.config.postgres.terminationPolicy "Pause") .Values.config.postgres.pause))) }}---
+apiVersion: stash.appscode.com/v1alpha1
+kind: Repository
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-postgres
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-postgres
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  wipeOut: false
+  backend:
+    storageSecretName: {{ .Values.persistence.stash.secret | quote }}
+    {{ .Values.persistence.stash.type }}:
+      {{- if (or (eq "gcs" .Values.persistence.stash.type) (eq "s3" .Values.persistence.stash.type)) }}
+      bucket: {{ .Values.persistence.stash.bucket | quote }}
+      {{- end }}
+      {{- if (eq "s3" .Values.persistence.stash.type) }}
+      endpoint: {{ .Values.persistence.stash.endpoint | quote }}
+      {{- end }}
+      {{- if (eq "azure" .Values.persistence.stash.type) }}
+      container: {{ .Values.persistence.stash.container | quote }}
+      {{- end }}
+      prefix: '{{ .Values.persistence.stash.prefix }}/{{ .Release.Namespace }}/postgres-{{ index .Values.config.postgres.versionMap .Values.config.postgres.version }}'
+---
+apiVersion: stash.appscode.com/v1beta1
+kind: BackupConfiguration
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-postgres
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-postgres
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  repository:
+    name: {{ template "generator-helm-chart-2.fullname" . }}-postgres
+  paused: {{ .Values.persistence.stash.paused }}
+  schedule: {{ .Values.persistence.stash.schedule | quote }}
+  retentionPolicy:
+    name: retention-policy
+    keepLast: {{ .Values.persistence.stash.keepLast }}
+    prune: true
+  target:
+    ref:
+      apiVersion: apps/v1
+      kind: AppBinding
+      name: {{ template "generator-helm-chart-2.fullname" . }}-postgres
+  task:
+    name: 'postgres-backup-{{ index .Values.config.postgres.versionMap .Values.config.postgres.version }}'
+{{- end }}
+{{- end }}

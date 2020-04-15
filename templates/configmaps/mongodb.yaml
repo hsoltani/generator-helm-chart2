@@ -1,0 +1,25 @@
+{{- if .Values.config.mongodb.internal }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-mongodb
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-mongodb
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  mongodbd.conf: {{ .Values.config.mongodb.customConfig | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-mongodb-init
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-mongodb-init
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  data.js: ''
+{{- end }}

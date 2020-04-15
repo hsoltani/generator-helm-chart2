@@ -1,0 +1,26 @@
+{{- if (and .Values.config.postgres.internal .Values.config.pgadmin.enabled) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "generator-helm-chart-2.fullname" . }}-pgadmin
+  labels:
+    app: {{ template "generator-helm-chart-2.name" . }}-pgadmin
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  servers.json: |
+    {
+      "Servers": {
+        "1": {
+          "Name": "{{ template "generator-helm-chart-2.fullname" . }}-postgres",
+          "Group": "Servers",
+          "Port": 5432,
+          "Username": "postgres",
+          "Host": "{{ template "generator-helm-chart-2.fullname" . }}-postgres",
+          "SSLMode": "prefer",
+          "MaintenanceDB": "postgres"
+        }
+      }
+    }
+{{- end }}
